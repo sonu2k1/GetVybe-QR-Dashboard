@@ -49,20 +49,6 @@ export default function HuntDetailsClient({ huntId, adminSecret }: HuntDetailsCl
       setLoading(true);
       setError('');
 
-      const { data: huntData, error: huntError } = await supabase
-        .from('hunts')
-        .select('*')
-        .eq('id', huntId)
-        .single();
-
-      if (huntError) {
-        if (huntError.code === 'PGRST116') {
-          throw new Error('This hunt campaign does not exist or has been deleted.');
-        }
-        throw huntError;
-      }
-      setHunt(huntData);
-
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -70,17 +56,31 @@ export default function HuntDetailsClient({ huntId, adminSecret }: HuntDetailsCl
         headers['x-admin-secret'] = adminSecret;
       }
 
-      const res = await fetch(`/api/qr?huntId=${huntId}`, {
+      // Fetch hunt details via Server API
+      const resHunt = await fetch(`/api/hunts/${huntId}`, {
         method: 'GET',
         headers,
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
+      if (!resHunt.ok) {
+        throw new Error('This hunt campaign does not exist or has been deleted.');
+      }
+
+      const huntData = await resHunt.json();
+      setHunt(huntData);
+
+      // Fetch checkpoints
+      const resQrs = await fetch(`/api/qr?huntId=${huntId}`, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!resQrs.ok) {
+        const errorData = await resQrs.json();
         throw new Error(errorData.error || 'Failed to fetch QR codes');
       }
 
-      const qrData = await res.json();
+      const qrData = await resQrs.json();
       setQrCodes(qrData || []);
     } catch (err: any) {
       console.error(err);
@@ -112,12 +112,24 @@ export default function HuntDetailsClient({ huntId, adminSecret }: HuntDetailsCl
 
   const handleStatusChange = async (newStatus: string) => {
     try {
-      const { error: updateError } = await supabase
-        .from('hunts')
-        .update({ status: newStatus })
-        .eq('id', huntId);
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (adminSecret) {
+        headers['x-admin-secret'] = adminSecret;
+      }
 
-      if (updateError) throw updateError;
+      const res = await fetch(`/api/hunts/${huntId}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to update status');
+      }
+
       setHunt((prev) => prev ? { ...prev, status: newStatus as any } : null);
     } catch (err: any) {
       alert(`Failed to update status: ${err.message}`);

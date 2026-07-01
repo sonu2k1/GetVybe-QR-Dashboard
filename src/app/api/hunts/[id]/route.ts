@@ -1,6 +1,34 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase';
 
+// GET /api/hunts/[id] - selects a single hunt campaign
+export async function GET(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const huntId = params.id;
+    const supabase = createServerClient();
+
+    const { data: hunt, error } = await supabase
+      .from('hunts')
+      .select('*')
+      .eq('id', huntId)
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+
+    return NextResponse.json(hunt);
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: err.message || 'An unexpected error occurred' },
+      { status: 500 }
+    );
+  }
+}
+
 // DELETE /api/hunts/[id] - deletes a hunt campaign
 export async function DELETE(
   req: Request,
@@ -58,6 +86,43 @@ export async function DELETE(
   } catch (err: any) {
     return NextResponse.json(
       { error: err.message || 'An unexpected error occurred while deleting the hunt' },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH /api/hunts/[id] - updates a hunt campaign status/fields
+export async function PATCH(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const huntId = params.id;
+    const supabase = createServerClient();
+    const body = await req.json();
+    const { name, start_at, end_at, status } = body;
+
+    const updateData: Record<string, any> = {};
+    if (name !== undefined) updateData.name = name;
+    if (start_at !== undefined) updateData.start_at = start_at;
+    if (end_at !== undefined) updateData.end_at = end_at;
+    if (status !== undefined) updateData.status = status;
+
+    const { data, error } = await supabase
+      .from('hunts')
+      .update(updateData)
+      .eq('id', huntId)
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(data);
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: err.message || 'An unexpected error occurred' },
       { status: 500 }
     );
   }
