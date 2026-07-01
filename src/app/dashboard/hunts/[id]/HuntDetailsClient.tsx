@@ -55,7 +55,12 @@ export default function HuntDetailsClient({ huntId, adminSecret }: HuntDetailsCl
         .eq('id', huntId)
         .single();
 
-      if (huntError) throw huntError;
+      if (huntError) {
+        if (huntError.code === 'PGRST116') {
+          throw new Error('This hunt campaign does not exist or has been deleted.');
+        }
+        throw huntError;
+      }
       setHunt(huntData);
 
       const headers: Record<string, string> = {
