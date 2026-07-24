@@ -105,12 +105,15 @@ export async function POST(req: Request) {
           hunt_id: actualHuntId,
           code: uniqueCode,
           label: actualLabel,
+          title: actualLabel,
+          type: 'treasure',
           points: actualPoints,
           clue_payload: actualCluePayload,
           sequence_order: actualSequenceOrder || null,
           max_scans: actualMaxScans || null,
           location_lat: actualLat || null,
           location_lng: actualLng || null,
+          active: true,
         },
       ])
       .select()

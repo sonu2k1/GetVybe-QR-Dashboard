@@ -93,6 +93,8 @@ export async function POST(req: Request) {
       hunt_id: actualHuntId,
       code,
       label: `${actualLabelPrefix} ${nextSeq + index}`,
+      title: `${actualLabelPrefix} ${nextSeq + index}`,
+      type: 'treasure',
       points: 10,
       sequence_order: nextSeq + index,
       clue_payload: {
@@ -100,6 +102,7 @@ export async function POST(req: Request) {
         text: `Find the location of QR code #${nextSeq + index}`,
       },
       is_active: true,
+      active: true,
       scan_count: 0,
     }));
 

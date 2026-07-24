@@ -76,6 +76,8 @@ export async function POST(req: Request) {
           hunt_id: huntId,
           code,
           label,
+          title: label || cluePayload.title || '',
+          type: 'treasure',
           points: parseInt(points, 10) || 10,
           sequence_order: sequenceOrder !== undefined && sequenceOrder !== null ? parseInt(sequenceOrder, 10) : null,
           max_scans: maxScans !== undefined && maxScans !== null && maxScans !== '' ? parseInt(maxScans, 10) : null,
@@ -88,6 +90,7 @@ export async function POST(req: Request) {
           location_lng: locationLng !== undefined && locationLng !== null && locationLng !== '' ? parseFloat(locationLng) : null,
           scan_count: 0,
           is_active: true,
+          active: true,
         },
       ])
       .select()

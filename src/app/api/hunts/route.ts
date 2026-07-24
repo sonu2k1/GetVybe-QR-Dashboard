@@ -124,10 +124,13 @@ export async function POST(req: Request) {
           hunt_id: newHunt.id,
           code,
           label: `${name} - Clue 1`,
+          title: `${name} - Clue 1`,
+          type: 'treasure',
           sequence_order: 1,
           points: 10,
           clue_payload: { title: 'Clue 1', text: 'Add your clue here', imageUrl: '' },
           is_active: true,
+          active: true,
           scan_count: 0
         }
       ])
